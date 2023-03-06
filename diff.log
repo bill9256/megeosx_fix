@@ -1,0 +1,109 @@
+diff --git a/include/mega/crypto/sodium.h b/include/mega/crypto/sodium.h
+index f604dee82..86d654ebf 100644
+--- a/include/mega/crypto/sodium.h
++++ b/include/mega/crypto/sodium.h
+@@ -22,7 +22,8 @@
+ #ifndef SODIUM_H
+ #define SODIUM_H 1
+ 
+-#include <sodium.h>
++//#include <sodium.h>
++#include "/opt/local/include/cryptopp/naclite.h"
+ 
+ namespace mega {
+ 
+@@ -34,8 +35,8 @@ class PrnGen;
+ class MEGA_API EdDSA
+ {
+ public:
+-    static const int SEED_KEY_LENGTH = crypto_sign_SEEDBYTES;
+-    static const int PUBLIC_KEY_LENGTH = crypto_sign_PUBLICKEYBYTES;
++    static const int SEED_KEY_LENGTH = CryptoPP::NaCl::crypto_sign_SEEDBYTES;
++    static const int PUBLIC_KEY_LENGTH = CryptoPP::NaCl::crypto_sign_PUBLICKEYBYTES;
+ 
+     // TLV key to access to the corresponding value in the TLV records
+     static const std::string TLV_KEY;
+@@ -76,7 +77,7 @@ public:
+                    const std::string *sig, const unsigned char* singingPubKey);
+ 
+ private:
+-    static const int PRIVATE_KEY_LENGTH = crypto_sign_SECRETKEYBYTES;
++    static const int PRIVATE_KEY_LENGTH = CryptoPP::NaCl::crypto_sign_SECRETKEYBYTES;
+     unsigned char privKey[PRIVATE_KEY_LENGTH]; // don't use it externally, use keySeed instead
+ };
+ 
+@@ -88,8 +89,8 @@ private:
+ class MEGA_API ECDH
+ {
+ public:
+-    static const int PRIVATE_KEY_LENGTH = crypto_box_SECRETKEYBYTES;
+-    static const int PUBLIC_KEY_LENGTH = crypto_box_PUBLICKEYBYTES;
++    static const int PRIVATE_KEY_LENGTH = CryptoPP::NaCl::crypto_box_SECRETKEYBYTES;
++    static const int PUBLIC_KEY_LENGTH = CryptoPP::NaCl::crypto_box_PUBLICKEYBYTES;
+ 
+     // TLV key to access to the corresponding value in the TLV records
+     static const std::string TLV_KEY;
+diff --git a/include/mega/osx/megafs.h b/include/mega/osx/megafs.h
+index fd2e53559..86b522c07 100644
+--- a/include/mega/osx/megafs.h
++++ b/include/mega/osx/megafs.h
+@@ -23,9 +23,14 @@
+ 
+ #include <CoreServices/CoreServices.h>
+ 
+-#define FSACCESS_CLASS MacFileSystemAccess
++// Bill
+ #include "mega/posix/megafs.h"
+ 
++#define FSACCESS_CLASS MacFileSystemAccess
++
++// Bill
++//#include "mega/posix/megafs.h"
++
+ namespace mega {
+ 
+ class MEGA_API MacFileSystemAccess
+diff --git a/include/megaapi_impl.h b/include/megaapi_impl.h
+index 57d29895f..87db864f8 100644
+--- a/include/megaapi_impl.h
++++ b/include/megaapi_impl.h
+@@ -50,6 +50,10 @@
+ #include "mega/gfx/GfxProcCG.h"
+ #endif
+ 
++// Bill
++#include "mega/osx/megafs.h"
++
++
+ ////////////////////////////// SETTINGS //////////////////////////////
+ ////////// Support for threads and mutexes
+ //Choose one of these options.
+diff --git a/src/megaclient.cpp b/src/megaclient.cpp
+index 7e686866b..133815b2b 100644
+--- a/src/megaclient.cpp
++++ b/src/megaclient.cpp
+@@ -21503,8 +21503,9 @@ string KeyManager::computeSymmetricKey(handle user)
+     }
+ 
+     std::string sharedSecret;
+-    sharedSecret.resize(crypto_scalarmult_BYTES);
+-    if (crypto_scalarmult((unsigned char *)sharedSecret.data(),
++    // Bill
++    sharedSecret.resize(CryptoPP::NaCl::crypto_scalarmult_BYTES);
++    if (CryptoPP::NaCl::crypto_scalarmult((unsigned char *)sharedSecret.data(),
+                           mClient.chatkey->privKey,
+                           (unsigned char *)cachedav->data()))
+     {
+diff --git a/src/osx/fs.cpp b/src/osx/fs.cpp
+index 2a5fd6770..d84e325b7 100644
+--- a/src/osx/fs.cpp
++++ b/src/osx/fs.cpp
+@@ -1,6 +1,8 @@
+ #include <future>
+ 
+ #include "mega.h"
++// Bill
++#include "mega/osx/megafs.h"
+ 
+ namespace mega {
+ 
